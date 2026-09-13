@@ -101,19 +101,26 @@ class _Card extends StatelessWidget {
       margin: EdgeInsets.all(15),
       padding: EdgeInsets.all(15),
       decoration: BoxDecoration(
-        color: Colors.deepOrange,
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.grey, width: 5),
+        border: Border.all(color: Colors.grey, width: 1),
+        boxShadow: [
+          BoxShadow(color: Colors.black, spreadRadius: 1, offset: Offset(0, 10), blurRadius: 15)
+        ]
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Flexible(
-            child: SizedBox(height: 150, width: 100,
-              child: Image.network(
-                imageUrl ?? '',
-                errorBuilder: (_, __, ___) => const Placeholder(),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Flexible(
+              child: SizedBox(height: 150, width: 100,
+                child: Image.network(
+                  imageUrl ?? '',
+                  // fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => const Placeholder(),
+                ),
               ),
             ),
           ),
