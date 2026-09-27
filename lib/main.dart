@@ -59,9 +59,24 @@ class MyWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final data = [
-      _CardData('Ноутбук', descriptionText: '4ядря 4 гига', icon: Icons.waving_hand_sharp, imageUrl: 'https://w7.pngwing.com/pngs/790/725/png-transparent-laptop-lenovo-ideapad-yoga-13-lenovo-yoga-720-13-lenovo-yoga-720-15-laptop-electronics-netbook-computer-thumbnail.png'),
-      _CardData('Смартфон', descriptionText: 'Самсунг?', icon: Icons.local_activity, imageUrl: 'https://pngdownload.io/wp-content/uploads/2025/02/Samsung-Galaxy-S25-Ultra-Titanium-Black-Premium-Smartphone-2048x1877.webp'),
-      _CardData('Процессор', descriptionText: '5 5600x', icon: Icons.face, imageUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTAWsxT_TZznhqJYxfRlOGGeEiyf4tnOJLLtS7lPbBFQg&s'),
+      _CardData(
+        'Ноутбук',
+        descriptionText: '4ядря 4 гига',
+        icon: Icons.waving_hand_sharp,
+        imageUrl: 'https://w7.pngwing.com/pngs/790/725/png-transparent-laptop-lenovo-ideapad-yoga-13-lenovo-yoga-720-13-lenovo-yoga-720-15-laptop-electronics-netbook-computer-thumbnail.png',
+      ),
+      _CardData(
+        'Смартфон',
+        descriptionText: 'Самсунг?',
+        icon: Icons.local_activity,
+        imageUrl: 'https://pngdownload.io/wp-content/uploads/2025/02/Samsung-Galaxy-S25-Ultra-Titanium-Black-Premium-Smartphone-2048x1877.webp',
+      ),
+      _CardData(
+        'Процессор',
+        descriptionText: '5 5600x',
+        icon: Icons.face,
+        imageUrl: 'https://cdn.citilink.ru/GHh35ODAI5AMlUID0GD2DxFYzUgOqtYqaJS1Lif_TXI/resizing_type:fit/gravity:sm/width:1200/height:750/plain/product-images/bd7752f0-19a1-471d-ac80-de15d55ab131.jpg',
+      ),
     ];
     return Center(
       child: SingleChildScrollView(
@@ -75,7 +90,7 @@ class MyWidget extends StatelessWidget {
   }
 }
 
-class _Card extends StatelessWidget {
+class _Card extends StatefulWidget {
   final String text;
   final String descriptionText;
   final IconData icon;
@@ -96,51 +111,94 @@ class _Card extends StatelessWidget {
   );
 
   @override
+  State<_Card> createState() => _CardState();
+}
+
+class _CardState extends State<_Card> {
+  bool isLiked = false;
+
+  @override
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(15),
-      padding: EdgeInsets.all(15),
+      constraints: BoxConstraints(minHeight: 150),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(color: Colors.grey, width: 1),
         boxShadow: [
-          BoxShadow(color: Colors.black, spreadRadius: 1, offset: Offset(0, 10), blurRadius: 15)
-        ]
+          BoxShadow(
+            color: Colors.black,
+            spreadRadius: 1,
+            offset: Offset(0, 10),
+            blurRadius: 15,
+          ),
+        ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Flexible(
-              child: SizedBox(height: 150, width: 100,
-                child: Image.network(
-                  imageUrl ?? '',
-                  // fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => const Placeholder(),
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(10),
+                topLeft: Radius.circular(10),
+              ),
+              child: Flexible(
+                child: SizedBox(
+                  height: double.infinity,
+                  width: 120,
+                  child: Image.network(
+                    widget.imageUrl ?? '',
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const Placeholder(),
+                  ),
                 ),
               ),
             ),
-          ),
-          Flexible(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 1, top: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(text, style: Theme.of(context).textTheme.headlineMedium),
-                  Text(
-                    descriptionText,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ],
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 10, top: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.text,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    Text(
+                      widget.descriptionText,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-          Padding(padding: const EdgeInsets.all(5.0), child: Icon(icon)),
-        ],
+            Align(
+              alignment: AlignmentGeometry.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 1, right: 10, bottom: 16),
+                child: GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      isLiked = !isLiked;
+                    });
+                  },
+                  child: AnimatedSwitcher(
+                    duration: Duration(milliseconds: 300),
+                    child: isLiked
+                        ? const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                            key: ValueKey(0),
+                          )
+                        : const Icon(Icons.favorite_border, key: ValueKey(1)),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
