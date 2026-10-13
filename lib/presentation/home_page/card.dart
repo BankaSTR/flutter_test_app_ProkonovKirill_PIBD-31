@@ -6,7 +6,6 @@ class _Card extends StatefulWidget {
   final String text;
   final String descriptionText;
   final IconData icon;
-  final String? imageUrl;
   final OnLikeCallback onLike;
   final VoidCallback? onTap;
 
@@ -14,20 +13,18 @@ class _Card extends StatefulWidget {
     this.text, {
     required this.descriptionText,
     this.icon = Icons.drive_file_rename_outline,
-    this.imageUrl,
     this.onLike,
     this.onTap,
   });
 
   factory _Card.fromData(
-    CardData data, {
+    CardData project, {
     OnLikeCallback? onLike,
     VoidCallback? onTap,
   }) => _Card(
-    data.text,
-    descriptionText: data.descriptionText,
-    icon: data.icon,
-    imageUrl: data.imageUrl,
+    project.title,
+    descriptionText: project.description,
+    icon: projectIcon(project.icon),
     onLike: onLike,
     onTap: onTap,
   );
@@ -74,29 +71,15 @@ class _CardState extends State<_Card> {
                   child: Stack(
                     children: [
                       Positioned.fill(
-                        child: Image.network(
-                          widget.imageUrl ?? '',
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => const Placeholder(),
+                        child: Container(
+                          color: Colors.deepOrange.shade100,
+                          child: Icon(
+                            widget.icon,
+                            size: 54,
+                            color: Colors.deepOrange,
+                          ),
                         ),
                       ),
-                      // Align(
-                      //   alignment: AlignmentGeometry.bottomLeft,
-                      //   child: Container(
-                      //     decoration: const BoxDecoration(
-                      //       color: Colors.deepOrange,
-                      //       borderRadius: BorderRadius.only(
-                      //         topRight: Radius.circular(20),
-                      //       ),
-                      //     ),
-                      //     padding: const EdgeInsets.fromLTRB(8, 2, 8, 2),
-                      //     child: Text(
-                      //       'скидка 15%',
-                      //       style: Theme.of(context).textTheme.bodyMedium
-                      //           ?.copyWith(color: Colors.black),
-                      //     ),
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),

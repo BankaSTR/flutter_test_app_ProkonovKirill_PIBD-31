@@ -1,15 +1,23 @@
-import 'package:flutter/material.dart';
-
 class CardData {
-  final String text;
-  final String descriptionText;
-  final IconData icon;
-  final String? imageUrl;
+  final int id;
+  final String title;
+  final String description;
+  final int progress;
+  final int collected;
+  final int goal;
+  final String icon;
+  final int categoryId;
+  final int organizationId;
 
-  CardData(
-    this.text, {
-    required this.descriptionText,
-    this.icon = Icons.drive_file_rename_outline,
-    this.imageUrl,
+  const CardData({
+    required this.id,
+    required this.title,
+    required this.description,
+    required this.progress,
+    required this.collected,
+    required this.goal,
+    required this.icon,
+    required this.categoryId,
+    required this.organizationId,
   });
 }
