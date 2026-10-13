@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_test_app/domain/models/card.dart';
+import 'package:flutter_test_app/domain/models/home.dart';
 import 'package:flutter_test_app/domain/repositories/project_repository.dart';
 import 'package:flutter_test_app/main.dart';
 
@@ -24,10 +25,7 @@ void main() {
     await tester.pumpWidget(MyApp(repository: repository));
     await tester.pumpAndSettle();
 
-    await tester.enterText(
-      find.byKey(const ValueKey('project-search')),
-      'лечение',
-    );
+    await tester.enterText(find.byType(CupertinoSearchTextField), 'лечение');
     await tester.pump(const Duration(milliseconds: 351));
     await tester.pumpAndSettle();
 
@@ -54,24 +52,31 @@ class FakeProjectRepository implements ProjectRepository {
   final List<String> searches = [];
 
   @override
-  Future<List<CardData>> loadProjects({String search = ''}) async {
-    searches.add(search);
-    if (search.isNotEmpty) {
-      return [];
+  Future<HomeData?> loadData({
+    OnErrorCallback? onError,
+    String? q,
+    int page = 1,
+    int pageSize = 25,
+  }) async {
+    searches.add(q ?? '');
+    if (q?.isNotEmpty ?? false) {
+      return HomeData(data: const []);
     }
 
-    return const [
-      CardData(
-        id: 1,
-        title: 'Детям — образование',
-        description: 'Помощь детям в получении образования',
-        progress: 75,
-        collected: 750000,
-        goal: 1000000,
-        icon: 'bi-mortarboard-fill',
-        categoryId: 1,
-        organizationId: 2,
-      ),
-    ];
+    return HomeData(
+      data: const [
+        CardData(
+          id: 1,
+          title: 'Детям — образование',
+          description: 'Помощь детям в получении образования',
+          progress: 75,
+          collected: 750000,
+          goal: 1000000,
+          icon: 'bi-mortarboard-fill',
+          categoryId: 1,
+          organizationId: 2,
+        ),
+      ],
+    );
   }
 }

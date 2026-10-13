@@ -11,22 +11,27 @@ void main() {
         onRequest: (options, handler) {
           queryParameters = options.queryParameters;
           handler.resolve(
-            Response<List<dynamic>>(
+            Response<Map<String, dynamic>>(
               requestOptions: options,
               statusCode: 200,
-              data: const [
-                {
-                  'id': 7,
-                  'title': 'Лечение детей',
-                  'description': 'Сбор средств на лечение детей',
-                  'progress': 45,
-                  'collected': 450000,
-                  'goal': 1000000,
-                  'icon': 'bi-house-heart-fill',
-                  'categoryId': 2,
-                  'organizationId': 1,
+              data: const {
+                'data': [
+                  {
+                    'id': 7,
+                    'title': 'Лечение детей',
+                    'description': 'Сбор средств на лечение детей',
+                    'progress': 45,
+                    'collected': 450000,
+                    'goal': 1000000,
+                    'icon': 'bi-house-heart-fill',
+                    'categoryId': 2,
+                    'organizationId': 1,
+                  },
+                ],
+                'meta': {
+                  'pagination': {'current': 1, 'next': 2, 'last': 2},
                 },
-              ],
+              },
             ),
           );
         },
@@ -34,11 +39,12 @@ void main() {
     );
     final repository = ProjectApiRepository(dio: dio);
 
-    final projects = await repository.loadProjects(search: '  лечение  ');
+    final result = await repository.loadData(q: '  лечение  ');
 
-    expect(queryParameters, {'search': 'лечение'});
-    expect(projects, hasLength(1));
-    expect(projects.single.title, 'Лечение детей');
-    expect(projects.single.collected, 450000);
+    expect(queryParameters, {'search': 'лечение', 'page': 1, 'pageSize': 3});
+    expect(result?.data, hasLength(1));
+    expect(result?.data?.single.title, 'Лечение детей');
+    expect(result?.data?.single.collected, 450000);
+    expect(result?.nextPage, 2);
   });
 }

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test_app/data/dtos/project_dto.dart';
 import 'package:flutter_test_app/data/mappers/project_mapper.dart';
-import 'package:flutter_test_app/domain/models/card.dart';
+import 'package:flutter_test_app/domain/models/home.dart';
 import 'package:flutter_test_app/domain/repositories/project_repository.dart';
 import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
@@ -44,33 +44,38 @@ class ProjectApiRepository implements ProjectRepository {
   }
 
   @override
-  Future<List<CardData>> loadProjects({String search = ''}) async {
+  Future<HomeData?> loadData({
+    OnErrorCallback? onError,
+    String? q,
+    int page = 1,
+    int pageSize = 3,
+  }) async {
     try {
-      final response = await _dio.get<List<dynamic>>(
-        '/projects',
-        queryParameters: {'search': search.trim()},
+      final response = await _dio.get<Map<String, dynamic>>(
+        '/projects/page',
+        queryParameters: {
+          'search': q?.trim() ?? '',
+          'page': page,
+          'pageSize': pageSize,
+        },
       );
-      final jsonList = response.data;
+      final json = response.data;
 
-      if (jsonList == null) {
+      if (json == null) {
         throw const FormatException('Сервер вернул пустой ответ');
       }
 
-      return jsonList
-          .map(
-            (json) =>
-                ProjectDto.fromJson(Map<String, dynamic>.from(json as Map))
-                    .toDomain(),
-          )
-          .toList(growable: false);
+      final dto = ProjectsDto.fromJson(json);
+      return dto.toDomain();
     } on DioException catch (error) {
-      throw ProjectLoadingException(_errorMessage(error));
+      onError?.call(_errorMessage(error));
+      return null;
     } on FormatException catch (error) {
-      throw ProjectLoadingException(error.message);
+      onError?.call(error.message);
+      return null;
     } on TypeError {
-      throw const ProjectLoadingException(
-        'Формат ответа сервера не соответствует DTO проекта',
-      );
+      onError?.call('Формат ответа сервера не соответствует DTO проекта');
+      return null;
     }
   }
 
@@ -81,13 +86,4 @@ class ProjectApiRepository implements ProjectRepository {
 
     return 'Не удалось подключиться к серверу благотворительной платформы';
   }
-}
-
-class ProjectLoadingException implements Exception {
-  final String message;
-
-  const ProjectLoadingException(this.message);
-
-  @override
-  String toString() => message;
 }
