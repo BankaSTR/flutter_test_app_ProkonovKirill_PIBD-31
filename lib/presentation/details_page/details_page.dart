@@ -20,15 +20,9 @@ class DetailsPage extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 4.0),
-            child: Text(
-              project.title,
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
+            child: Text(project.title, style: Theme.of(context).textTheme.headlineLarge),
           ),
-          Text(
-            project.description,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          Text(project.description, style: Theme.of(context).textTheme.bodyLarge),
           Padding(
             padding: const EdgeInsets.only(top: 16.0),
             child: Text(

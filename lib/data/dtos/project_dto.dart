@@ -9,8 +9,7 @@ class ProjectsDto {
 
   const ProjectsDto({this.data, this.meta});
 
-  factory ProjectsDto.fromJson(Map<String, dynamic> json) =>
-      _$ProjectsDtoFromJson(json);
+  factory ProjectsDto.fromJson(Map<String, dynamic> json) => _$ProjectsDtoFromJson(json);
 }
 
 @JsonSerializable(createToJson: false)
@@ -37,8 +36,7 @@ class ProjectDto {
     required this.organizationId,
   });
 
-  factory ProjectDto.fromJson(Map<String, dynamic> json) =>
-      _$ProjectDtoFromJson(json);
+  factory ProjectDto.fromJson(Map<String, dynamic> json) => _$ProjectDtoFromJson(json);
 }
 
 @JsonSerializable(createToJson: false)
@@ -47,8 +45,7 @@ class MetaDto {
 
   const MetaDto({this.pagination});
 
-  factory MetaDto.fromJson(Map<String, dynamic> json) =>
-      _$MetaDtoFromJson(json);
+  factory MetaDto.fromJson(Map<String, dynamic> json) => _$MetaDtoFromJson(json);
 }
 
 @JsonSerializable(createToJson: false)
@@ -59,6 +56,5 @@ class PaginationDto {
 
   const PaginationDto({this.current, this.next, this.last});
 
-  factory PaginationDto.fromJson(Map<String, dynamic> json) =>
-      _$PaginationDtoFromJson(json);
+  factory PaginationDto.fromJson(Map<String, dynamic> json) => _$PaginationDtoFromJson(json);
 }

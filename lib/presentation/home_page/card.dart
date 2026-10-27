@@ -1,13 +1,15 @@
 part of 'home_page.dart';
 
-typedef OnLikeCallback = void Function(String title, bool isLiked)?;
+typedef OnLikeCallback = void Function(int? id, String title, bool isLiked)?;
 
-class _Card extends StatefulWidget {
+class _Card extends StatelessWidget {
   final String text;
   final String descriptionText;
   final IconData icon;
   final OnLikeCallback onLike;
   final VoidCallback? onTap;
+  final int? id;
+  final bool isLiked;
 
   const _Card(
     this.text, {
@@ -15,31 +17,29 @@ class _Card extends StatefulWidget {
     this.icon = Icons.drive_file_rename_outline,
     this.onLike,
     this.onTap,
+    this.id,
+    this.isLiked = false,
   });
 
   factory _Card.fromData(
     CardData project, {
-    OnLikeCallback? onLike,
+    OnLikeCallback onLike,
     VoidCallback? onTap,
+    bool isLiked = false,
   }) => _Card(
     project.title,
     descriptionText: project.description,
     icon: projectIcon(project.icon),
     onLike: onLike,
     onTap: onTap,
+    isLiked: isLiked,
+    id: project.id,
   );
-
-  @override
-  State<_Card> createState() => _CardState();
-}
-
-class _CardState extends State<_Card> {
-  bool isLiked = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
         margin: EdgeInsets.all(15),
         constraints: BoxConstraints(minHeight: 160),
@@ -48,12 +48,7 @@ class _CardState extends State<_Card> {
           borderRadius: BorderRadius.circular(10),
           border: Border.all(color: Colors.grey, width: 1),
           boxShadow: [
-            BoxShadow(
-              color: Colors.black,
-              spreadRadius: 1,
-              offset: Offset(0, 10),
-              blurRadius: 15,
-            ),
+            BoxShadow(color: Colors.black, spreadRadius: 1, offset: Offset(0, 10), blurRadius: 15),
           ],
         ),
         child: IntrinsicHeight(
@@ -73,11 +68,7 @@ class _CardState extends State<_Card> {
                       Positioned.fill(
                         child: Container(
                           color: Colors.deepOrange.shade100,
-                          child: Icon(
-                            widget.icon,
-                            size: 54,
-                            color: Colors.deepOrange,
-                          ),
+                          child: Icon(icon, size: 54, color: Colors.deepOrange),
                         ),
                       ),
                     ],
@@ -90,14 +81,8 @@ class _CardState extends State<_Card> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.text,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      Text(
-                        widget.descriptionText,
-                        style: Theme.of(context).textTheme.titleSmall,
-                      ),
+                      Text(text, style: Theme.of(context).textTheme.titleLarge),
+                      Text(descriptionText, style: Theme.of(context).textTheme.titleSmall),
                     ],
                   ),
                 ),
@@ -105,26 +90,13 @@ class _CardState extends State<_Card> {
               Align(
                 alignment: AlignmentGeometry.bottomRight,
                 child: Padding(
-                  padding: const EdgeInsets.only(
-                    left: 1,
-                    right: 10,
-                    bottom: 16,
-                  ),
+                  padding: const EdgeInsets.only(left: 1, right: 10, bottom: 16),
                   child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        isLiked = !isLiked;
-                        widget.onLike?.call(widget.text, isLiked);
-                      });
-                    },
+                    onTap: () => onLike?.call(id, text, isLiked),
                     child: AnimatedSwitcher(
                       duration: Duration(milliseconds: 300),
                       child: isLiked
-                          ? const Icon(
-                              Icons.favorite,
-                              color: Colors.red,
-                              key: ValueKey(0),
-                            )
+                          ? const Icon(Icons.favorite, color: Colors.red, key: ValueKey(0))
                           : const Icon(Icons.favorite_border, key: ValueKey(1)),
                     ),
                   ),

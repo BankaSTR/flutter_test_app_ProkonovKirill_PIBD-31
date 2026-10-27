@@ -23,9 +23,7 @@ class ProjectApiRepository implements ProjectRepository {
     );
 
     if (kDebugMode) {
-      dio.interceptors.add(
-        PrettyDioLogger(requestHeader: true, requestBody: true),
-      );
+      dio.interceptors.add(PrettyDioLogger(requestHeader: true, requestBody: true));
     }
 
     return dio;
@@ -53,11 +51,7 @@ class ProjectApiRepository implements ProjectRepository {
     try {
       final response = await _dio.get<Map<String, dynamic>>(
         '/projects/page',
-        queryParameters: {
-          'search': q?.trim() ?? '',
-          'page': page,
-          'pageSize': pageSize,
-        },
+        queryParameters: {'search': q?.trim() ?? '', 'page': page, 'pageSize': pageSize},
       );
       final json = response.data;
 

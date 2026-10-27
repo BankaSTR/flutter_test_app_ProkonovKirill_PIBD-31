@@ -1,13 +1,21 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test_app/components/extensions/context_x.dart';
 import 'package:flutter_test_app/components/utils/debounce.dart';
 import 'package:flutter_test_app/domain/models/card.dart';
 import 'package:flutter_test_app/domain/repositories/project_repository.dart';
+import 'package:flutter_test_app/presentation/common/svg_objects.dart';
 import 'package:flutter_test_app/presentation/details_page/details_page.dart';
 import 'package:flutter_test_app/presentation/home_page/bloc/bloc.dart';
 import 'package:flutter_test_app/presentation/home_page/bloc/events.dart';
 import 'package:flutter_test_app/presentation/home_page/bloc/state.dart';
+import 'package:flutter_test_app/presentation/like_bloc/like_bloc.dart';
+import 'package:flutter_test_app/presentation/like_bloc/like_event.dart';
+import 'package:flutter_test_app/presentation/like_bloc/like_state.dart';
+import 'package:flutter_test_app/presentation/locale_bloc/locale_bloc.dart';
+import 'package:flutter_test_app/presentation/locale_bloc/locale_events.dart';
+import 'package:flutter_test_app/presentation/locale_bloc/locale_state.dart';
 import 'package:flutter_test_app/presentation/project_formatters.dart';
 
 part 'card.dart';
@@ -29,7 +37,15 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(backgroundColor: _color, title: Text(widget.title)),
-      body: Body(repository: widget.repository),
+      body: BlocListener<LikeBloc, LikeState>(
+        listenWhen: (previous, current) => previous.error != current.error && current.error != null,
+        listener: (context, state) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.error ?? ''), backgroundColor: Colors.red));
+        },
+        child: Body(repository: widget.repository),
+      ),
     );
   }
 }
@@ -49,8 +65,10 @@ class _BodyState extends State<Body> {
 
   @override
   void initState() {
+    SvgObjects.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<HomeBloc>().add(const HomeLoadDataEvent());
+      context.read<LikeBloc>().add(const LoadLikesEvent());
     });
 
     scrollController.addListener(_onNextPageListener);
@@ -64,9 +82,7 @@ class _BodyState extends State<Body> {
       final nextPage = bloc.state.data?.nextPage;
 
       if (!bloc.state.isPaginationLoading && nextPage != null) {
-        bloc.add(
-          HomeLoadDataEvent(search: searchController.text, nextPage: nextPage),
-        );
+        bloc.add(HomeLoadDataEvent(search: searchController.text, nextPage: nextPage));
       }
     }
   }
@@ -84,19 +100,40 @@ class _BodyState extends State<Body> {
       padding: EdgeInsets.only(top: MediaQuery.of(context).padding.top),
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: CupertinoSearchTextField(
-              controller: searchController,
-              placeholder: 'Поиск благотворительных проектов',
-              onChanged: (search) {
-                Debounce.run(
-                  () => context.read<HomeBloc>().add(
-                    HomeLoadDataEvent(search: search),
+          Row(
+            children: [
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: CupertinoSearchTextField(
+                    controller: searchController,
+                    placeholder: context.locale.search,
+                    onChanged: (search) {
+                      Debounce.run(
+                        () => context.read<HomeBloc>().add(HomeLoadDataEvent(search: search)),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
+                ),
+              ),
+              GestureDetector(
+                onTap: () => context.read<LocaleBloc>().add(const ChangeLocaleEvent()),
+                child: SizedBox.square(
+                  dimension: 50,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: BlocBuilder<LocaleBloc, LocaleState>(
+                      builder: (context, state) {
+                        return state.currentLocale.languageCode == 'ru'
+                            ? const SvgRu()
+                            : const SvgUk();
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
           BlocBuilder<HomeBloc, HomeState>(
             builder: (context, state) => state.error != null
@@ -107,16 +144,9 @@ class _BodyState extends State<Body> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(
-                              Icons.wifi_off,
-                              size: 48,
-                              color: Colors.deepOrange,
-                            ),
+                            const Icon(Icons.wifi_off, size: 48, color: Colors.deepOrange),
                             const SizedBox(height: 12),
-                            Text(
-                              'Ошибка загрузки',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
+                            Text('Ошибка загрузки', style: Theme.of(context).textTheme.titleLarge),
                             const SizedBox(height: 8),
                             Text(
                               state.error ?? '',
@@ -126,9 +156,7 @@ class _BodyState extends State<Body> {
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
                               onPressed: () => context.read<HomeBloc>().add(
-                                HomeLoadDataEvent(
-                                  search: searchController.text,
-                                ),
+                                HomeLoadDataEvent(search: searchController.text),
                               ),
                               icon: const Icon(Icons.refresh),
                               label: const Text('Повторить'),
@@ -141,29 +169,31 @@ class _BodyState extends State<Body> {
                 : state.isLoading
                 ? const CircularProgressIndicator()
                 : state.data?.data?.isEmpty ?? true
-                ? const Expanded(
-                    child: Center(child: Text('Ничего не найдено')),
-                  )
-                : Expanded(
-                    child: RefreshIndicator(
-                      onRefresh: _onRefresh,
-                      child: ListView.builder(
-                        controller: scrollController,
-                        padding: EdgeInsets.zero,
-                        itemCount: state.data?.data?.length ?? 0,
-                        itemBuilder: (context, index) {
-                          final data = state.data?.data?[index];
-                          return data != null
-                              ? _Card.fromData(
-                                  data,
-                                  onLike: (title, isLiked) =>
-                                      _showSnackBar(context, title, isLiked),
-                                  onTap: () => _navToDetails(context, data),
-                                )
-                              : const SizedBox.shrink();
-                        },
-                      ),
-                    ),
+                ? const Expanded(child: Center(child: Text('Ничего не найдено')))
+                : BlocBuilder<LikeBloc, LikeState>(
+                    builder: (context, likeState) {
+                      return Expanded(
+                        child: RefreshIndicator(
+                          onRefresh: _onRefresh,
+                          child: ListView.builder(
+                            controller: scrollController,
+                            padding: EdgeInsets.zero,
+                            itemCount: state.data?.data?.length ?? 0,
+                            itemBuilder: (context, index) {
+                              final data = state.data?.data?[index];
+                              return data != null
+                                  ? _Card.fromData(
+                                      data,
+                                      onLike: _onLike,
+                                      isLiked: likeState.likedIds?.contains(data.id) == true,
+                                      onTap: () => _navToDetails(context, data),
+                                    )
+                                  : const SizedBox.shrink();
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
           ),
           BlocBuilder<HomeBloc, HomeState>(
@@ -177,17 +207,19 @@ class _BodyState extends State<Body> {
   }
 
   Future<void> _onRefresh() {
-    context.read<HomeBloc>().add(
-      HomeLoadDataEvent(search: searchController.text),
-    );
+    context.read<HomeBloc>().add(HomeLoadDataEvent(search: searchController.text));
     return Future.value(null);
   }
 
   void _navToDetails(BuildContext context, CardData project) {
-    Navigator.push(
-      context,
-      CupertinoPageRoute(builder: (context) => DetailsPage(project)),
-    );
+    Navigator.push(context, CupertinoPageRoute(builder: (context) => DetailsPage(project)));
+  }
+
+  void _onLike(int? id, String title, bool isLiked) {
+    if (id != null) {
+      context.read<LikeBloc>().add(ChangeLikeEvent(id));
+      _showSnackBar(context, title, !isLiked);
+    }
   }
 
   void _showSnackBar(BuildContext context, String title, bool isLiked) {
@@ -196,7 +228,7 @@ class _BodyState extends State<Body> {
         SnackBar(
           content: Text(
             'Проект «$title» '
-            '${isLiked ? 'добавлен в избранное' : 'удалён из избранного'}',
+            '${isLiked ? context.locale.liked : context.locale.disliked}',
             style: Theme.of(context).textTheme.bodyLarge,
           ),
           backgroundColor: Colors.deepOrange,

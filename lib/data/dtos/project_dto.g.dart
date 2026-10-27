@@ -10,9 +10,7 @@ ProjectsDto _$ProjectsDtoFromJson(Map<String, dynamic> json) => ProjectsDto(
   data: (json['data'] as List<dynamic>?)
       ?.map((e) => ProjectDto.fromJson(e as Map<String, dynamic>))
       .toList(),
-  meta: json['meta'] == null
-      ? null
-      : MetaDto.fromJson(json['meta'] as Map<String, dynamic>),
+  meta: json['meta'] == null ? null : MetaDto.fromJson(json['meta'] as Map<String, dynamic>),
 );
 
 ProjectDto _$ProjectDtoFromJson(Map<String, dynamic> json) => ProjectDto(
@@ -33,9 +31,8 @@ MetaDto _$MetaDtoFromJson(Map<String, dynamic> json) => MetaDto(
       : PaginationDto.fromJson(json['pagination'] as Map<String, dynamic>),
 );
 
-PaginationDto _$PaginationDtoFromJson(Map<String, dynamic> json) =>
-    PaginationDto(
-      current: (json['current'] as num?)?.toInt(),
-      next: (json['next'] as num?)?.toInt(),
-      last: (json['last'] as num?)?.toInt(),
-    );
+PaginationDto _$PaginationDtoFromJson(Map<String, dynamic> json) => PaginationDto(
+  current: (json['current'] as num?)?.toInt(),
+  next: (json['next'] as num?)?.toInt(),
+  last: (json['last'] as num?)?.toInt(),
+);
